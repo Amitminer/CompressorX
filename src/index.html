@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CompressorX - Video Compression Tool</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  </head>
+  <body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col">
+
+    <!-- Main Container -->
+    <main class="flex-grow flex flex-col items-center px-6 py-10 space-y-10">
+      <!-- Logo & Title -->
+      <div class="text-center space-y-6">
+        <div class="flex justify-center">
+          <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 4L32 14V26L18 36L4 26V14L18 4Z" fill="#0F172A" />
+            <path d="M18 4L32 14V26L18 36L4 26V14L18 4Z" stroke="#3B82F6" stroke-width="1.5" />
+            <path d="M12 18L18 12L24 18L18 24L12 18Z" fill="#3B82F6" />
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold">CompressorX</h1>
+      </div>
+
+      <!-- Upload Area -->
+      <section class="w-full max-w-lg space-y-8">
+        <div id="drop-area" class="border-2 border-dashed border-gray-700 rounded-xl p-10 flex flex-col items-center text-center hover:border-blue-500">
+          <i class="fas fa-cloud-upload-alt text-3xl text-gray-500 mb-4"></i>
+          <p class="text-lg font-medium mb-1">Drop your video here</p>
+          <p class="text-sm text-gray-500 mb-6">or</p>
+          <button id="browse-files" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+            <i class="fas fa-folder-open"></i>
+            Browse Files
+          </button>
+          <p id="file-status" class="mt-4 text-sm text-gray-500">No file selected</p>
+        </div>
+
+        <div id="video-preview" class="hidden mt-4"></div>
+
+        <!-- Video Info -->
+        <div id="video-info" class="hidden bg-gray-800 rounded-xl p-4">
+          <div class="flex items-center gap-3">
+            <i class="fas fa-film text-blue-500 text-2xl"></i>
+            <div class="flex-grow">
+              <h3 id="video-name" class="font-medium">video.mp4</h3>
+              <div class="flex flex-wrap gap-4 text-sm text-gray-400">
+                <span><i class="far fa-clock mr-1"></i><span id="video-duration">00:00</span></span>
+                <span><i class="fas fa-weight-hanging mr-1"></i><span id="video-size">0 MB</span></span>
+                <span><i class="fas fa-expand-arrows-alt mr-1"></i><span id="video-resolution">0x0</span></span>
+              </div>
+            </div>
+            <button class="text-gray-500 hover:text-red-500"><i class="fas fa-times"></i></button>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" class="hidden">
+          <div class="bg-gray-800 rounded-xl p-4 space-y-3">
+            <div class="flex justify-between items-center text-sm">
+              <div class="space-y-1">
+                <div class="text-gray-300 font-medium" id="progress-status">Preparing to compress...</div>
+                <div class="text-gray-500 text-xs" id="progress-details">Initializing...</div>
+              </div>
+              <div class="text-blue-500 font-medium text-lg" id="progress-percent">0%</div>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-3">
+              <div id="progress-bar" class="bg-blue-600 h-3 rounded-full transition-all duration-300 relative" style="width: 0%">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compression Settings -->
+        <form id="compress-form" class="space-y-6">
+          <h2 class="text-lg font-medium flex items-center"><i class="fas fa-sliders-h mr-2 text-blue-500"></i> Compression Settings</h2>
+
+          <div>
+            <label for="bitrate" class="block text-sm text-gray-400 mb-2">Bitrate (kbps)</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-tachometer-alt text-gray-600"></i>
+              </div>
+              <input type="number" id="bitrate" name="bitrate" class="bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-500 text-white rounded-lg pl-10 p-2.5 w-full" placeholder="1000" value="1000">
+            </div>
+          </div>
+
+          <div>
+            <label for="buffer-size" class="block text-sm text-gray-400 mb-2">Buffer Size (kbps)</label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-database text-gray-600"></i>
+              </div>
+              <input type="number" id="buffer-size" name="buffer-size" class="bg-gray-800 border border-gray-700 focus:border-blue-500 focus:ring focus:ring-blue-500 text-white rounded-lg pl-10 p-2.5 w-full" placeholder="2000" value="2000">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-400 mb-2">Resolution</label>
+            <div id="resolution-buttons" class="grid grid-cols-2 gap-2">
+              <button type="button" data-resolution="original" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Original</button>
+              <button type="button" data-resolution="720p" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg">720p</button>
+              <button type="button" data-resolution="480p" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg">480p</button>
+              <button type="button" data-resolution="360p" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg">360p</button>
+            </div>
+          </div>
+
+          <button type="submit" id="compress-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2">
+            <i class="fas fa-compress-alt"></i>
+            Compress Video
+          </button>
+        </form>
+
+        <!-- Results Container -->
+        <div id="result" class="mt-6"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html> 

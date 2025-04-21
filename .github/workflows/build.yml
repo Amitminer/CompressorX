@@ -1,0 +1,81 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - dev
+      - beta
+
+jobs:
+  build-and-release-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Git LFS Pull
+        run: git lfs pull
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18.x
+          cache: 'npm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run tauri build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compressorx-windows
+          path: src-tauri/target/release/bundle/msi/*.msi
+
+  create-release:
+    needs: [build-and-release-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: compressorx-windows
+          path: compressorx-windows
+
+      - uses: ncipollo/release-action@v1.14.0
+        with:
+          artifacts: "compressorx-windows/*.msi"
+          token: ${{ secrets.RELEASE_TOKEN }}
+          name: Build v${{ github.run_number }}
+          tag: v${{ github.run_number }}
+          prerelease: true
+          body: |
+            Development build v${{ github.run_number }}
+            
+            ### Build Information
+            - Branch: ${{ github.ref_name }}
+            - Commit: ${{ github.sha }}
+            - Build Date: ${{ github.event.head_commit.timestamp }}
+            - Workflow Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ### System Requirements
+            - Windows 10/11 64-bit
+            
+            ### Installation
+            1. Download the MSI installer
+            2. Run the installer and follow the setup wizard
+            3. Launch CompressorX from the Start Menu
+
+  cleanup:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            compressorx-windows 
