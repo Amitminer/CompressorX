@@ -8,12 +8,12 @@
  * Gets a DOM element and logs a warning if not found
  *
  * @param selector - CSS selector string
- * @param name - Human-readable name of the element for debugging
+ * @param name? - Human-readable name of the element for debugging
  * @returns The selected element or null if not found
  */
 export function getEl<T extends HTMLElement = HTMLElement>(
   selector: string,
-  name: string
+  name: string = selector
 ): T | null {
   const el = document.querySelector<T>(selector);
   if (!el) {
@@ -49,21 +49,23 @@ export let resultEl: HTMLElement | null;
 export let videoInfoEl: HTMLElement | null;
 export let fileStatusEl: HTMLElement | null;
 export let uploadProgressEl: HTMLElement | null;
-
+export let uploadProgressTextEl: HTMLElement | null;
+export let uploadProgressBarEl: HTMLElement | null;
 /**
  * Initializes all DOM elements used in the application
  */
-export function initializeDOMElements() {
-  fileInputEl = getEl("#file-input", "File Input");
-  filePathEl = getEl("#file-path", "File Path");
+export function initializeDOMElements(): void {
   bitrateInputEl = getEl("#bitrate", "Bitrate Input");
   bufferSizeInputEl = getEl("#buffer-size", "Buffer Size Input");
-  resolutionSelectEl = getEl("#resolution-select", "Resolution Select");
+  // resolutionSelectEl = null; // Initialize as null for now
   compressButtonEl = getEl("#compress-button", "Compress Button");
   progressBarEl = getEl("#progress-bar", "Progress Bar");
-  progressTextEl = getEl("#progress-text", "Progress Text");
+  // progressTextEl = null; // Initialize as null for now
   resultEl = getEl("#result", "Result");
   videoInfoEl = getEl("#video-info", "Video Info");
   fileStatusEl = getEl("#file-status", "File Status");
-  uploadProgressEl = getEl("#upload-progress-container", "Upload Progress Container");
-}
+  
+  uploadProgressTextEl = getEl("#upload-progress-text", "Upload Progress Text");
+  uploadProgressBarEl = getEl("#upload-progress-bar", "Upload Progress Bar");
+  uploadProgressEl = null;
+}   

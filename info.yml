@@ -1,0 +1,26 @@
+name: CompressorX
+version: '1.5.0'
+description: 'Video compression utility'
+author:
+  name: AmitxD
+  username: Amitminer
+application:
+  type: video_compression
+ 
+binaries:
+  ffmpeg:
+    windows:
+      folder: 'windows_x86_64'
+      name: 'ffmpeg.exe'
+      version: 7.1
+    ffprobe:
+      windows:
+        folder: 'windows_x86_64'
+        name: 'ffprobe.exe'
+        version: 7.1
+    linux:
+      folder: 'linux_x86_64/7.1'
+      name: 'ffmpeg'
+      version: 7.1
+
+last_updated: '25-04-2025'
