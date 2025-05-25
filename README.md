@@ -71,7 +71,7 @@ CompressorX/
 
 ### 🏁 Download Prebuilt App
 
-Grab the latest Windows installer from the [Releases](https://github.com/yourusername/CompressorX/releases) page and run the `.msi` file.
+Grab the latest Windows installer from the [Releases](https://github.com/Amitminer/CompressorX/releases) page and run the `.msi` file.
 
 ### 🔧 Build from Source
 
