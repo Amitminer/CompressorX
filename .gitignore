@@ -36,9 +36,8 @@ target/
 
 # Temporary files
 *.tmp
-*./temp
-./temp
 *.bak
+temp
 
 # But keep the FFmpeg binaries (handled by Git LFS)
 !src-tauri/binaries/

@@ -14,6 +14,11 @@ import { formatDuration, formatFileSize } from '../utils/formatters';
 import { getEl } from '../utils/dom';
 import { hideProgress, updateProgress } from './ProgressBar';
 
+function hideProgressContainer() {
+  const progressContainer = document.getElementById('progress-container');
+  if (progressContainer) progressContainer.classList.add('hidden');
+}
+
 /**
  * Displays the compression result in the UI
  * 
@@ -33,14 +38,27 @@ export function showResult(result: CompressionResult) {
   
   // Hide progress first
   hideProgress();
+  hideProgressContainer();
+
+  // Show toast if successful
+  if (result.success && typeof window !== 'undefined' && typeof (window as any).showToast === 'function') {
+    (window as any).showToast(
+      'Compression complete! 🎉',
+      'View Result',
+      () => {
+        const resultEl = document.getElementById('result');
+        if (resultEl) resultEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    );
+  }
 
   const resultEl = getEl("#result");
   if (!resultEl) return;
 
   if (result.success) {
-    const sizeDiff = result.compressed_size - result.original_size;
-    const isLarger = sizeDiff > 0;
-    const compressionRatio = Math.abs((sizeDiff / result.original_size * 100)).toFixed(1);
+    const sizeDiff = result.original_size - result.compressed_size;
+    const isReduced = sizeDiff > 0;
+    const percentReduced = (sizeDiff / result.original_size) * 100;
     const formattedSizeDiff = formatFileSize(Math.abs(sizeDiff));
 
     resultEl.innerHTML = `
@@ -63,17 +81,17 @@ export function showResult(result: CompressionResult) {
           </div>
         </div>
 
-        <div class="bg-${isLarger ? 'yellow' : 'blue'}-500/10 rounded-lg p-4">
+        <div class="bg-${isReduced ? 'yellow' : 'blue'}-500/10 rounded-lg p-4">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-sm text-${isLarger ? 'yellow' : 'blue'}-400">Size ${isLarger ? 'Increased' : 'Reduced'} By</span>
-            <span class="text-sm font-medium text-${isLarger ? 'yellow' : 'blue'}-400">${compressionRatio}%</span>
+            <span class="text-sm text-${isReduced ? 'yellow' : 'blue'}-400">Size ${isReduced ? 'Reduced' : 'Increased'} By</span>
+            <span class="text-sm font-medium text-${isReduced ? 'yellow' : 'blue'}-400">${percentReduced.toFixed(1)}%</span>
           </div>
-          <div class="w-full bg-gray-700 rounded-full h-2">
-            <div class="bg-${isLarger ? 'yellow' : 'blue'}-500 h-2 rounded-full transition-all duration-500" style="width: ${Math.min(100, parseFloat(compressionRatio))}%"></div>
+          <div class="w-full bg-gray-700 rounded-full h-4">
+            <div class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: ${Math.max(0, percentReduced)}%"></div>
           </div>
           <div class="mt-2 text-sm text-gray-400">
-            ${isLarger ? 'Increased' : 'Reduced'} by ${formattedSizeDiff}
-            ${isLarger ? ' (This may happen with certain video codecs or settings)' : ''}
+            ${isReduced ? 'Reduced' : 'Increased'} by ${formattedSizeDiff}
+            ${isReduced ? ' (This may happen with certain video codecs or settings)' : ''}
           </div>
         </div>
 
@@ -137,6 +155,7 @@ export function showResult(result: CompressionResult) {
  * showError("Failed to compress video: File not found");
  */
 export function showError(message: string) {
+  hideProgressContainer();
   const resultEl = getEl("#result");
   if (resultEl) {
     resultEl.innerHTML = `<div class="text-red-600">${message}</div>`;
@@ -162,6 +181,10 @@ export async function handleCompression(e: Event, selectedFilePath: string | nul
       showError("Please select a video file first");
       return;
     }
+
+    // Hide upload progress bar when compression starts
+    const uploadProgress = getEl('#upload-progress-container');
+    if (uploadProgress) uploadProgress.classList.add('hidden');
 
     // Get all required elements
     const bitrateInput = getEl<HTMLInputElement>("#bitrate");
@@ -307,11 +330,14 @@ export async function handleCompression(e: Event, selectedFilePath: string | nul
         clearInterval(progressInterval);
         console.log('[UI] Compression result:', result);
         
-        // Final progress update
-        updateProgress(100, "Compression complete!");
+        // Hide upload progress bar after compression
+        if (uploadProgress) uploadProgress.classList.add('hidden');
         
         // Show result immediately
         showResult(result);
+        
+        // Hide the progress bar after showing the result
+        hideProgress();
         
         // Re-enable compress button
         if (compressButton) {
@@ -324,6 +350,8 @@ export async function handleCompression(e: Event, selectedFilePath: string | nul
         console.error('Compression error:', error);
         hideProgress();
         showError(`Failed to compress video: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Hide upload progress bar on error
+        if (uploadProgress) uploadProgress.classList.add('hidden');
         if (compressButton) {
           compressButton.disabled = false;
           compressButton.classList.remove('opacity-50', 'cursor-not-allowed');
